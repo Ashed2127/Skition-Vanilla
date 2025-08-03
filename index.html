@@ -125,6 +125,81 @@
             animation: fadeInUp 1s ease-out 0.5s forwards; /* 0.5s delay */
             opacity: 0; /* Start hidden */
         }
+
+        /* --- Light Mode Styles --- */
+        body.light-mode {
+            background-color: #f7fafc; /* Tailwind gray-100 */
+            color: #1a202c; /* Tailwind gray-900 */
+        }
+
+        /* General overrides for elements that are dark in dark mode */
+        body.light-mode .bg-black {
+            background-color: #f7fafc; /* gray-100 */
+        }
+        body.light-mode .text-white {
+            color: #1a202c; /* gray-900 */
+        }
+
+        /* Specific component overrides */
+        body.light-mode .bg-gray-800 { /* For inputs, logout button */
+            background-color: #e2e8f0; /* gray-200 */
+        }
+        body.light-mode .hover\:bg-gray-700:hover { /* For logout button hover */
+            background-color: #cbd5e0; /* gray-300 */
+        }
+        body.light-mode .text-gray-400 {
+            color: #4a5568; /* gray-700 */
+        }
+        body.light-mode .text-gray-500 {
+            color: #2d3748; /* gray-800 */
+        }
+        body.light-mode .placeholder-gray-400 {
+            color: #718096; /* gray-600 */
+        }
+        body.light-mode .border-gray-700 {
+            border-color: #cbd5e0; /* gray-300 */
+        }
+        body.light-mode .modal-content { /* Modal background */
+            background-color: #ffffff; /* white */
+            color: #1a202c; /* gray-900 */
+        }
+        body.light-mode .plus-icon { /* Profile photo plus icon */
+            color: #4A5568; /* gray-700 */
+        }
+        body.light-mode .text-blue-400 { /* Portfolio link */
+            color: #2b6cb0; /* blue-700 */
+        }
+        body.light-mode .hover\:text-indigo-400:hover { /* Sign in/up links */
+            color: #4c51bf; /* indigo-700 */
+        }
+        body.light-mode .focus\:ring-indigo-500:focus {
+            --tw-ring-color: #4c51bf; /* indigo-700 */
+        }
+        body.light-mode .focus\:ring-blue-500:focus {
+            --tw-ring-color: #2b6cb0; /* blue-700 */
+        }
+        body.light-mode .bg-white { /* For buttons that are white in dark mode (e.g., Get Started, Buy) */
+            background-color: #e2e8f0; /* light gray for contrast */
+            color: #1a202c;
+        }
+        body.light-mode .hover\:bg-gray-200:hover {
+            background-color: #cbd5e0; /* gray-300 */
+        }
+        body.light-mode .bg-black { /* For buttons that are black in dark mode (e.g., Sell) */
+            background-color: #4a5568; /* dark gray for contrast */
+            color: #ffffff;
+        }
+        body.light-mode .hover\:bg-white:hover {
+            background-color: #ffffff;
+            color: #1a202c;
+        }
+        body.light-mode .bg-gray-200 { /* Bottom nav active background */
+            background-color: #cbd5e0; /* gray-300 */
+            color: #1a202c;
+        }
+        body.light-mode .text-gray-500 { /* Bottom nav inactive text */
+            color: #718096; /* gray-600 */
+        }
     </style>
 </head>
 <body class="bg-black text-white min-h-screen flex flex-col">
@@ -257,6 +332,10 @@
 
     <!-- Marketplace Page -->
     <div id="marketplace-page" class="hidden flex-grow pb-24 flex flex-col items-center justify-start pt-16 relative">
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle" class="absolute top-4 right-20 bg-gray-800 text-white px-3 py-2 rounded-md text-xl font-semibold hover:bg-gray-700 transition-colors z-50" onclick="toggleTheme()">
+            <span id="theme-toggle-icon">☀️</span> <!-- Default to sun (light mode icon for dark theme) -->
+        </button>
         <!-- Logout Button -->
         <button class="absolute top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-gray-700 transition-colors z-50" onclick="handleLogout()">
             Logout
@@ -308,6 +387,10 @@
 
     <!-- Profile Page -->
     <div id="profile-page" class="hidden relative min-h-screen flex flex-col items-center justify-start pt-16">
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle-profile" class="absolute top-4 right-20 bg-gray-800 text-white px-3 py-2 rounded-md text-xl font-semibold hover:bg-gray-700 transition-colors z-50" onclick="toggleTheme()">
+            <span id="theme-toggle-icon-profile">☀️</span> <!-- Default to sun (light mode icon for dark theme) -->
+        </button>
         <!-- Logout Button -->
         <button class="absolute top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-gray-700 transition-colors z-50" onclick="handleLogout()">
             Logout
@@ -539,6 +622,10 @@
         const orderStatusMessage = document.getElementById('orderStatusMessage');
         const orderSubmitButton = document.getElementById('orderSubmitButton');
 
+        // Theme Toggle Elements
+        let themeToggleIcon = null; // Will be set dynamically based on current page
+        let themeToggleIconProfile = null; // For profile page specific button
+
         // --- Three.js Scene Setup (for welcome page) ---
         let scene, camera, renderer, particles;
         const particleCount = 5000;
@@ -672,6 +759,50 @@
             localStorage.setItem('skitionAppData', JSON.stringify(appData));
         }
 
+        // --- Theme Functions ---
+        /**
+         * Loads the saved theme preference from localStorage and applies it.
+         */
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('skitionTheme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                // Set initial icon for both buttons if they exist
+                if (document.getElementById('theme-toggle-icon')) {
+                    document.getElementById('theme-toggle-icon').textContent = '🌙'; // Moon for dark mode
+                }
+                if (document.getElementById('theme-toggle-icon-profile')) {
+                    document.getElementById('theme-toggle-icon-profile').textContent = '🌙'; // Moon for dark mode
+                }
+            } else {
+                // Default to dark mode if no preference or 'dark' is saved
+                document.body.classList.remove('light-mode');
+                if (document.getElementById('theme-toggle-icon')) {
+                    document.getElementById('theme-toggle-icon').textContent = '☀️'; // Sun for light mode
+                }
+                if (document.getElementById('theme-toggle-icon-profile')) {
+                    document.getElementById('theme-toggle-icon-profile').textContent = '☀️'; // Sun for light mode
+                }
+            }
+        }
+
+        /**
+         * Toggles the theme between light and dark mode.
+         */
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const currentTheme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+            localStorage.setItem('skitionTheme', currentTheme);
+
+            // Update icon for both buttons
+            if (document.getElementById('theme-toggle-icon')) {
+                document.getElementById('theme-toggle-icon').textContent = currentTheme === 'light' ? '🌙' : '☀️';
+            }
+            if (document.getElementById('theme-toggle-icon-profile')) {
+                document.getElementById('theme-toggle-icon-profile').textContent = currentTheme === 'light' ? '🌙' : '☀️';
+            }
+        }
+
         // --- Page Navigation ---
         /**
          * Shows a specific page and hides all others.
@@ -696,6 +827,9 @@
                     bottomNav.classList.add('hidden');
                 }
             }
+
+            // Re-apply theme icon after page change, as elements might be re-rendered
+            loadTheme(); // This will ensure the correct icon is displayed
 
             if (pageId === 'marketplace-page') {
                 renderMarketplace();
@@ -1304,6 +1438,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
             initThreeJS(); // Initialize Three.js background
+            loadTheme(); // Load theme preference after data and before showing page
             showPage('welcome-page'); // Start on the welcome page
         });
     </script>
