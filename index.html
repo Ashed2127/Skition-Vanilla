@@ -258,7 +258,7 @@
     <!-- Marketplace Page -->
     <div id="marketplace-page" class="hidden flex-grow pb-24 flex flex-col items-center justify-start pt-16 relative">
         <!-- Logout Button -->
-        <button class="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition-colors z-50" onclick="handleLogout()">
+        <button class="absolute top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-gray-700 transition-colors z-50" onclick="handleLogout()">
             Logout
         </button>
 
@@ -309,7 +309,7 @@
     <!-- Profile Page -->
     <div id="profile-page" class="hidden relative min-h-screen flex flex-col items-center justify-start pt-16">
         <!-- Logout Button -->
-        <button class="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition-colors z-50" onclick="handleLogout()">
+        <button class="absolute top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-gray-700 transition-colors z-50" onclick="handleLogout()">
             Logout
         </button>
 
@@ -642,7 +642,14 @@
                             { id: 'skill2', name: 'Jane Smith', skill: 'Video Editing', price: 10, hour: 2, portfolioUrl: 'https://janesmith.dev' } 
                         ],
                         purchased: [
-                            { id: 'purchase1', skill: 'Video Editing', price: 10, hour: 2, originalMinter: 'Jane Smith' }
+                            { id: 'purchase1', skill: 'Video Editing', price: 10, hour: 2, originalMinter: 'Jane Smith' },
+                            { id: 'purchase2', skill: 'Photography', price: 20, hour: 3, originalMinter: 'Photographer X' },
+                            { id: 'purchase3', skill: 'Copywriting', price: 5, hour: 1, originalMinter: 'Writer Y' },
+                            { id: 'purchase4', skill: 'Social Media Mgmt', price: 30, hour: 4, originalMinter: 'Marketer Z' },
+                            { id: 'purchase5', skill: 'Web Development', price: 50, hour: 5, originalMinter: 'Dev A' },
+                            { id: 'purchase6', skill: 'Video Review', price: 10, hour: 2, originalMinter: 'Reviewer B' },
+                            { id: 'purchase7', skill: 'Graphics Editing', price: 10, hour: 2, originalMinter: 'Designer C' },
+                            { id: 'purchase8', skill: 'Photo Editing', price: 10, hour: 2, originalMinter: 'Editor D' }
                         ],
                         minted: [
                             { id: 'skill2', name: 'Jane Smith', skill: 'Video Editing', price: 10, hour: 2, status: 'Published' } // Example: Jane Smith minted Video Editing
