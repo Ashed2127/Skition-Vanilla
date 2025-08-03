@@ -773,10 +773,11 @@
                              { id: 'skill2', name: 'Jane Smith', skill: 'Video Editing', price: 10, hour: 2, status: 'Published' } // Example: Jane Smith minted Video Editing
                          ],
                          orders: [
-                             { id: 'order1', skill: 'Web Development', price: 25, buyer: 'Jane Doe' },
-                             { id: 'order2', skill: 'Mobile App Design', price: 40, buyer: 'John Smith' },
-                             { id: 'order3', skill: 'UI/UX Research', price: 20, buyer: 'Emily White' },
-                             { id: 'order4', skill: 'Content Creator', price: 10, buyer: 'Alex Johnson' }
+                             // These orders are now explicitly for 'John Doe' (the default user)
+                             { id: 'order1', skill: 'Web Development', price: 25, buyer: 'Jane Doe', minter: 'John Doe' },
+                             { id: 'order2', skill: 'Mobile App Design', price: 40, buyer: 'John Smith', minter: 'John Doe' },
+                             { id: 'order3', skill: 'UI/UX Research', price: 20, buyer: 'Emily White', minter: 'John Doe' },
+                             { id: 'order4', skill: 'Content Creator', price: 10, buyer: 'Alex Johnson', minter: 'John Doe' }
                          ]
                      }
                  };
@@ -1024,16 +1025,14 @@
                  });
              }
  
-             // Render Orders (assuming orders are for the current user's minted skills)
+             // Render Orders (only for skills minted by the current user)
              const receivedOrders = appData.marketplace.orders.filter(order => {
-                 // Check if the order's skill provider matches any of the current user's minted skills
-                 return appData.marketplace.minted.some(mintedSkill => 
-                     mintedSkill.skill === order.skill && mintedSkill.name === userFullName
-                 );
+                 // An order is "for me" if the order's minter matches my full name
+                 return order.minter === userFullName;
              });
  
              if (receivedOrders.length === 0) {
-                 ordersList.innerHTML = `<p class="text-gray-500 col-span-full">No incoming orders yet.</p>`;
+                 ordersList.innerHTML = `<p class="text-gray-500 col-span-full">No incoming orders yet for your minted skills.</p>`;
              } else {
                  receivedOrders.forEach(order => {
                      ordersList.innerHTML += `
@@ -1291,7 +1290,8 @@
                      id: 'o' + Date.now(), // Unique ID
                      skill: skill,
                      price: price,
-                     buyer: name // Buyer's name
+                     buyer: name, // Buyer's name
+                     minter: minterName // Crucially, add the minter's name here
                  };
                  appData.marketplace.orders.push(newOrder);
  
