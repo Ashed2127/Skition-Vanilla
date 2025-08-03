@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skition Admin Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .section-card {
+            background-color: #2d3748; /* Slightly lighter dark background */
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #4a5568; /* Darker border */
+            padding: 0.75rem;
+            text-align: left;
+        }
+        th {
+            background-color: #4a5568; /* Even darker background for headers */
+            font-weight: 600;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #63b3ed; /* Blue */
+            color: #1a202c;
+        }
+        .btn-primary:hover {
+            background-color: #4299e1; /* Darker blue */
+        }
+        .btn-danger {
+            background-color: #fc8181; /* Red */
+            color: #1a202c;
+        }
+        .btn-danger:hover {
+            background-color: #e53e3e; /* Darker red */
+        }
+        .btn-secondary {
+            background-color: #a0aec0; /* Gray */
+            color: #1a202c;
+        }
+        .btn-secondary:hover {
+            background-color: #718096; /* Darker gray */
+        }
+        input[type="text"], input[type="password"], input[type="email"], input[type="tel"], input[type="number"], input[type="url"], textarea {
+            background-color: #4a5568; /* Dark input background */
+            border: 1px solid #636b77; /* Slightly lighter border */
+            color: #e2e8f0; /* Light text */
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            width: 100%;
+        }
+        input::placeholder, textarea::placeholder {
+            color: #a0aec0; /* Lighter placeholder text */
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #2d3748; /* Modal background */
+            padding: 2rem;
+            border-radius: 0.75rem;
+            max-width: 90%;
+            width: 500px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Admin Login Page -->
+    <div id="admin-login-page" class="min-h-screen flex items-center justify-center">
+        <div class="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">
+            <h2 class="text-3xl font-bold text-center mb-6">Admin Login</h2>
+            <form id="admin-login-form" onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label for="admin-username" class="block text-sm font-medium text-gray-300">Username</label>
+                    <input type="text" id="admin-username" class="mt-1 block w-full" required>
+                </div>
+                <div>
+                    <label for="admin-password" class="block text-sm font-medium text-gray-300">Password</label>
+                    <input type="password" id="admin-password" class="mt-1 block w-full" required>
+                </div>
+                <p id="admin-login-message" class="text-red-400 text-sm text-center hidden"></p>
+                <button type="submit" class="w-full btn btn-primary mt-4">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Main Content -->
+    <div id="admin-dashboard-content" class="container hidden">
+        <header class="flex justify-between items-center py-6">
+            <h1 class="text-4xl font-bold">Admin Dashboard</h1>
+            <button class="btn btn-secondary" onclick="handleAdminLogout()">Logout</button>
+        </header>
+
+        <!-- Users Section -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold mb-4">Users</h2>
+            <table id="users-table">
+                <thead>
+                    <tr>
+                        <th>Phone</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- User rows will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Minters Section -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold mb-4">Minters</h2>
+            <button class="btn btn-primary mb-4" onclick="openMinterModal('add')">Add New Minter Skill</button>
+            <table id="minters-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Skill</th>
+                        <th>Price</th>
+                        <th>Hour</th>
+                        <th>Portfolio URL</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Minter rows will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Purchased Section -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold mb-4">Purchased Skills</h2>
+            <table id="purchased-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Skill</th>
+                        <th>Price</th>
+                        <th>Hour</th>
+                        <th>Original Minter</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Purchased rows will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Minted Section -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold mb-4">Minted Skills</h2>
+            <table id="minted-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Skill</th>
+                        <th>Price</th>
+                        <th>Hour</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Minted rows will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold mb-4">Orders</h2>
+            <table id="orders-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Skill</th>
+                        <th>Price</th>
+                        <th>Buyer</th>
+                        <th>Minter</th>
+                        <th>New?</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Order rows will be injected here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Minter Add/Edit Modal -->
+    <div id="minter-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="minter-modal-title" class="text-2xl font-bold mb-4">Add Minter Skill</h3>
+            <form id="minter-form" class="space-y-4" onsubmit="handleMinterFormSubmit(event)">
+                <input type="hidden" id="minter-id">
+                <div>
+                    <label for="minter-name" class="block text-sm font-medium text-gray-300">Minter Name</label>
+                    <input type="text" id="minter-name" class="mt-1 block w-full" required>
+                </div>
+                <div>
+                    <label for="minter-skill" class="block text-sm font-medium text-gray-300">Skill</label>
+                    <input type="text" id="minter-skill" class="mt-1 block w-full" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="minter-price" class="block text-sm font-medium text-gray-300">Price ($)</label>
+                        <input type="number" id="minter-price" class="mt-1 block w-full" step="0.01" required>
+                    </div>
+                    <div>
+                        <label for="minter-hour" class="block text-sm font-medium text-gray-300">Hour</label>
+                        <input type="number" id="minter-hour" class="mt-1 block w-full" step="0.1" required>
+                    </div>
+                </div>
+                <div>
+                    <label for="minter-portfolio-url" class="block text-sm font-medium text-gray-300">Portfolio URL</label>
+                    <input type="url" id="minter-portfolio-url" class="mt-1 block w-full">
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" class="btn btn-secondary" onclick="closeMinterModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Minter Skill</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Admin Credentials (for demonstration purposes only)
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'admin123';
+
+        // DOM Elements
+        const adminLoginPage = document.getElementById('admin-login-page');
+        const adminDashboardContent = document.getElementById('admin-dashboard-content');
+        const adminLoginMessage = document.getElementById('admin-login-message');
+
+        const usersTableBody = document.querySelector('#users-table tbody');
+        const mintersTableBody = document.querySelector('#minters-table tbody');
+        const purchasedTableBody = document.querySelector('#purchased-table tbody');
+        const mintedTableBody = document.querySelector('#minted-table tbody');
+        const ordersTableBody = document.querySelector('#orders-table tbody');
+
+        const minterModal = document.getElementById('minter-modal');
+        const minterModalTitle = document.getElementById('minter-modal-title');
+        const minterIdInput = document.getElementById('minter-id');
+        const minterNameInput = document.getElementById('minter-name');
+        const minterSkillInput = document.getElementById('minter-skill');
+        const minterPriceInput = document.getElementById('minter-price');
+        const minterHourInput = document.getElementById('minter-hour');
+        const minterPortfolioUrlInput = document.getElementById('minter-portfolio-url');
+
+        let appData = {}; // Global app data, loaded from localStorage
+
+        /**
+         * Loads application data from localStorage.
+         */
+        function loadAdminData() {
+            const storedData = localStorage.getItem('skitionAppData');
+            if (storedData) {
+                appData = JSON.parse(storedData);
+            } else {
+                // Initialize with empty structure if no data found
+                appData = {
+                    users: [],
+                    marketplace: {
+                        minters: [],
+                        purchased: [],
+                        minted: [],
+                        orders: []
+                    }
+                };
+            }
+        }
+
+        /**
+         * Saves current application data to localStorage.
+         */
+        function saveAdminData() {
+            localStorage.setItem('skitionAppData', JSON.stringify(appData));
+        }
+
+        /**
+         * Handles admin login form submission.
+         * @param {Event} event - The form submission event.
+         */
+        function handleAdminLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                adminLoginPage.classList.add('hidden');
+                adminDashboardContent.classList.remove('hidden');
+                renderAdminDashboard();
+            } else {
+                adminLoginMessage.textContent = 'Invalid username or password.';
+                adminLoginMessage.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Handles admin logout.
+         */
+        function handleAdminLogout() {
+            adminDashboardContent.classList.add('hidden');
+            adminLoginPage.classList.remove('hidden');
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+            adminLoginMessage.classList.add('hidden');
+        }
+
+        /**
+         * Renders the entire admin dashboard with current data.
+         */
+        function renderAdminDashboard() {
+            loadAdminData(); // Ensure data is fresh
+            renderUsers();
+            renderMinters();
+            renderPurchased();
+            renderMinted();
+            renderOrders();
+        }
+
+        /**
+         * Renders the Users table.
+         */
+        function renderUsers() {
+            usersTableBody.innerHTML = '';
+            if (appData.users.length === 0) {
+                usersTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-400">No users registered yet.</td></tr>';
+                return;
+            }
+            appData.users.forEach(user => {
+                const row = usersTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${user.phone}</td>
+                    <td>${user.fullName || 'N/A'}</td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.phone}')">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        /**
+         * Deletes a user by phone number.
+         * @param {string} phone - The phone number of the user to delete.
+         */
+        function deleteUser(phone) {
+            if (confirm(`Are you sure you want to delete user ${phone}? This will also remove their minted skills and orders.`)) {
+                // Remove user
+                appData.users = appData.users.filter(u => u.phone !== phone);
+
+                // Find the full name of the deleted user to remove associated data
+                const deletedUserFullName = appData.users.find(u => u.phone === phone)?.fullName;
+
+                // Remove minted skills by this user
+                appData.marketplace.minted = appData.marketplace.minted.filter(skill => skill.name !== deletedUserFullName);
+
+                // Remove minter entries by this user
+                appData.marketplace.minters = appData.marketplace.minters.filter(minter => minter.name !== deletedUserFullName);
+                
+                // Remove orders where this user is the buyer or minter
+                appData.marketplace.orders = appData.marketplace.orders.filter(order => order.buyer !== deletedUserFullName && order.minter !== deletedUserFullName);
+
+                saveAdminData();
+                renderAdminDashboard();
+            }
+        }
+
+
+        /**
+         * Renders the Minters table.
+         */
+        function renderMinters() {
+            mintersTableBody.innerHTML = '';
+            if (appData.marketplace.minters.length === 0) {
+                mintersTableBody.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400">No minter skills available.</td></tr>';
+                return;
+            }
+            appData.marketplace.minters.forEach(minter => {
+                const row = mintersTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${minter.id}</td>
+                    <td>${minter.name}</td>
+                    <td>${minter.skill}</td>
+                    <td>$${minter.price.toFixed(2)}</td>
+                    <td>${minter.hour}</td>
+                    <td><a href="${minter.portfolioUrl}" target="_blank" class="text-blue-400 hover:underline">${minter.portfolioUrl || 'N/A'}</a></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm mr-2" onclick="openMinterModal('edit', '${minter.id}')">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteMinter('${minter.id}')">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        /**
+         * Opens the Minter Add/Edit modal.
+         * @param {string} mode - 'add' or 'edit'.
+         * @param {string} [minterId] - The ID of the minter to edit (if mode is 'edit').
+         */
+        function openMinterModal(mode, minterId = '') {
+            minterForm.reset(); // Clear previous form data
+            minterIdInput.value = ''; // Clear hidden ID
+
+            if (mode === 'add') {
+                minterModalTitle.textContent = 'Add New Minter Skill';
+            } else { // edit mode
+                minterModalTitle.textContent = 'Edit Minter Skill';
+                const minter = appData.marketplace.minters.find(m => m.id === minterId);
+                if (minter) {
+                    minterIdInput.value = minter.id;
+                    minterNameInput.value = minter.name;
+                    minterSkillInput.value = minter.skill;
+                    minterPriceInput.value = minter.price;
+                    minterHourInput.value = minter.hour;
+                    minterPortfolioUrlInput.value = minter.portfolioUrl || '';
+                }
+            }
+            minterModal.classList.add('show');
+        }
+
+        /**
+         * Closes the Minter Add/Edit modal.
+         */
+        function closeMinterModal() {
+            minterModal.classList.remove('show');
+        }
+
+        /**
+         * Handles the Minter form submission (Add or Edit).
+         * @param {Event} event - The form submission event.
+         */
+        function handleMinterFormSubmit(event) {
+            event.preventDefault();
+
+            const id = minterIdInput.value;
+            const name = minterNameInput.value.trim();
+            const skill = minterSkillInput.value.trim();
+            const price = parseFloat(minterPriceInput.value.trim());
+            const hour = parseFloat(minterHourInput.value.trim());
+            const portfolioUrl = minterPortfolioUrlInput.value.trim();
+
+            if (!name || !skill || isNaN(price) || isNaN(hour)) {
+                alert('Please fill all required fields: Name, Skill, Price, Hour.');
+                return;
+            }
+
+            if (id) { // Edit existing minter
+                const index = appData.marketplace.minters.findIndex(m => m.id === id);
+                if (index !== -1) {
+                    appData.marketplace.minters[index] = { id, name, skill, price, hour, portfolioUrl };
+                    // Also update corresponding minted skill if it exists and belongs to this minter
+                    const mintedIndex = appData.marketplace.minted.findIndex(m => m.id === id);
+                    if (mintedIndex !== -1) {
+                         appData.marketplace.minted[mintedIndex] = { ...appData.marketplace.minted[mintedIndex], name, skill, price, hour };
+                    }
+                }
+            } else { // Add new minter
+                const newId = 'minter' + Date.now();
+                appData.marketplace.minters.push({ id: newId, name, skill, price, hour, portfolioUrl });
+            }
+
+            saveAdminData();
+            renderAdminDashboard();
+            closeMinterModal();
+        }
+
+        /**
+         * Deletes a minter skill.
+         * @param {string} id - The ID of the minter skill to delete.
+         */
+        function deleteMinter(id) {
+            if (confirm(`Are you sure you want to delete minter skill with ID: ${id}?`)) {
+                appData.marketplace.minters = appData.marketplace.minters.filter(m => m.id !== id);
+                // Also remove from minted if it's the same ID (e.g., if it was minted by a user)
+                appData.marketplace.minted = appData.marketplace.minted.filter(m => m.id !== id);
+                saveAdminData();
+                renderAdminDashboard();
+            }
+        }
+
+        /**
+         * Renders the Purchased table.
+         */
+        function renderPurchased() {
+            purchasedTableBody.innerHTML = '';
+            if (appData.marketplace.purchased.length === 0) {
+                purchasedTableBody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400">No purchased skills yet.</td></tr>';
+                return;
+            }
+            appData.marketplace.purchased.forEach(item => {
+                const row = purchasedTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.skill}</td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td>${item.hour}</td>
+                    <td>${item.originalMinter || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deletePurchased('${item.id}')">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        /**
+         * Deletes a purchased item.
+         * @param {string} id - The ID of the purchased item to delete.
+         */
+        function deletePurchased(id) {
+            if (confirm(`Are you sure you want to delete purchased item with ID: ${id}?`)) {
+                appData.marketplace.purchased = appData.marketplace.purchased.filter(p => p.id !== id);
+                saveAdminData();
+                renderAdminDashboard();
+            }
+        }
+
+        /**
+         * Renders the Minted table.
+         */
+        function renderMinted() {
+            mintedTableBody.innerHTML = '';
+            if (appData.marketplace.minted.length === 0) {
+                mintedTableBody.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400">No skills minted by users yet.</td></tr>';
+                return;
+            }
+            appData.marketplace.minted.forEach(item => {
+                const row = mintedTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.skill}</td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td>${item.hour}</td>
+                    <td>${item.status}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteMinted('${item.id}')">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        /**
+         * Deletes a minted item.
+         * @param {string} id - The ID of the minted item to delete.
+         */
+        function deleteMinted(id) {
+            if (confirm(`Are you sure you want to delete minted skill with ID: ${id}?`)) {
+                appData.marketplace.minted = appData.marketplace.minted.filter(m => m.id !== id);
+                // If this minted skill was also in minters list, remove it from there too
+                appData.marketplace.minters = appData.marketplace.minters.filter(m => m.id !== id);
+                saveAdminData();
+                renderAdminDashboard();
+            }
+        }
+
+        /**
+         * Renders the Orders table.
+         */
+        function renderOrders() {
+            ordersTableBody.innerHTML = '';
+            if (appData.marketplace.orders.length === 0) {
+                ordersTableBody.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400">No orders yet.</td></tr>';
+                return;
+            }
+            appData.marketplace.orders.forEach(order => {
+                const row = ordersTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.skill}</td>
+                    <td>$${order.price.toFixed(2)}</td>
+                    <td>${order.buyer}</td>
+                    <td>${order.minter || 'N/A'}</td>
+                    <td>${order.isNew ? 'Yes' : 'No'}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteOrder('${order.id}')">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        /**
+         * Deletes an order.
+         * @param {string} id - The ID of the order to delete.
+         */
+        function deleteOrder(id) {
+            if (confirm(`Are you sure you want to delete order with ID: ${id}?`)) {
+                appData.marketplace.orders = appData.marketplace.orders.filter(o => o.id !== id);
+                saveAdminData();
+                renderAdminDashboard();
+            }
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            // No need to call loadAdminData here, as renderAdminDashboard will call it after login
+            // The login page is shown by default
+        });
+    </script>
+</body>
+</html>
