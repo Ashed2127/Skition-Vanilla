@@ -251,8 +251,12 @@
     </div>
 
     <!-- Marketplace Page -->
-    <div id="marketplace-page" class="hidden flex-grow pb-24 flex flex-col items-center justify-start pt-8">
-        <!-- Adjusted max-width for larger screens to improve responsiveness -->
+    <div id="marketplace-page" class="hidden flex-grow pb-24 flex flex-col items-center justify-start pt-8 relative">
+        <!-- Logout Button -->
+        <button class="absolute top-4 right-4 bg-dark-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition-colors" onclick="handleLogout()">
+            Logout
+        </button>
+
         <div class="w-full max-w-2xl mx-auto lg:max-w-4xl xl:max-w-7xl lg:border lg:border-gray-700 lg:rounded-2xl lg:p-8">
             <header class="text-center py-6 md:py-8">
                 <h1 class="text-2xl md:text-3xl text-gray-400">marketplace</h1>
@@ -299,6 +303,11 @@
 
     <!-- Profile Page -->
     <div id="profile-page" class="hidden relative min-h-screen flex flex-col items-center justify-start pt-8">
+        <!-- Logout Button -->
+        <button class="absolute top-4 right-4 bg-dark-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition-colors" onclick="handleLogout()">
+            Logout
+        </button>
+
         <!-- Adjusted max-width for larger screens -->
         <main class="w-full max-w-md mx-auto lg:max-w-xl bg-black bg-opacity-50 backdrop-blur-sm p-8 rounded-2xl shadow-2xl space-y-6 flex-grow flex flex-col justify-center">
             <div class="flex flex-col items-center space-y-2">
@@ -620,12 +629,12 @@
                 // Initialize with dummy data if no data is found
                 appData = {
                     users: [
-                        { phone: '0912345678', password: 'password123', fullName: 'John Doe', email: 'john.doe@example.com', profilePhoto: '' }
+                        { phone: '0912345678', password: 'password123', fullName: 'John Doe', email: 'john.doe@example.com', profilePhoto: '', portfolioUrl: 'https://johndoe.com/portfolio' }
                     ],
                     marketplace: {
                         minters: [
-                            { id: 'skill1', name: 'Dawit Tesfa', skill: 'Graphics Design', price: 15, hour: 2 },
-                            { id: 'skill2', name: 'Jane Smith', skill: 'Video Editing', price: 10, hour: 2 } 
+                            { id: 'skill1', name: 'Dawit Tesfa', skill: 'Graphics Design', price: 15, hour: 2, portfolioUrl: 'https://dawittesfa.com' },
+                            { id: 'skill2', name: 'Jane Smith', skill: 'Video Editing', price: 10, hour: 2, portfolioUrl: 'https://janesmith.dev' } 
                         ],
                         purchased: [
                             { id: 'purchase1', skill: 'Video Editing', price: 10, hour: 2, originalMinter: 'Jane Smith' }
@@ -727,7 +736,7 @@
                 return;
             }
 
-            appData.users.push({ phone, password, fullName: '', email: '', profilePhoto: '' }); // New user with empty profile
+            appData.users.push({ phone, password, fullName: '', email: '', profilePhoto: '', portfolioUrl: '' }); // New user with empty profile
             saveData();
             signUpMessage.textContent = 'Account created successfully! Please sign in.';
             signUpMessage.classList.remove('hidden');
@@ -742,6 +751,15 @@
                 signUpMessage.classList.add('hidden');
                 showPage('signin-page');
             }, 1500);
+        }
+
+        /**
+         * Handles user logout.
+         */
+        function handleLogout() {
+            currentUserPhone = null; // Clear current user
+            bottomNav.classList.add('hidden'); // Hide bottom navigation
+            showPage('signin-page'); // Redirect to sign-in page
         }
 
         // --- Marketplace Rendering ---
@@ -763,7 +781,10 @@
                         <p class="text-gray-400">${minter.skill} ${minter.hour}hr</p>
                         <div class="flex flex-col items-start space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                             <span class="text-lg font-semibold">$${minter.price}</span>
-                            <button class="bg-white text-black px-6 py-1 lg:px-8 lg:py-2 rounded-md font-semibold border border-white hover:bg-gray-200" onclick="openBuyModal('${minter.skill}', ${minter.price}, '${minter.name}')">Buy</button>
+                            <div class="flex items-center space-x-2">
+                                <button class="bg-white text-black px-6 py-1 lg:px-8 lg:py-2 rounded-md font-semibold border border-white hover:bg-gray-200" onclick="openBuyModal('${minter.skill}', ${minter.price}, '${minter.name}')">Buy</button>
+                                ${minter.portfolioUrl ? `<button class="bg-blue-600 text-white px-4 py-1 lg:px-6 lg:py-2 rounded-md font-semibold hover:bg-blue-700" onclick="viewPortfolio('${minter.portfolioUrl}')">View Portfolio</button>` : ''}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -815,9 +836,7 @@
 
 
             // Render Orders (assuming orders are for the current user's minted skills)
-            // For a real app, you'd filter orders by the minter's ID.
             const receivedOrders = appData.marketplace.orders.filter(order => {
-                // Check if the order's skill provider matches any of the current user's minted skills
                 return appData.marketplace.minted.some(mintedSkill => 
                     mintedSkill.skill === order.skill && mintedSkill.name === userFullName
                 );
@@ -848,6 +867,7 @@
                 profileFullNameInput.value = currentUser.fullName || '';
                 profilePhoneInput.value = currentUser.phone; // Phone is read-only
                 profileEmailInput.value = currentUser.email || '';
+                profilePortfolioUrlInput.value = currentUser.portfolioUrl || ''; // Pre-fill portfolio URL
 
                 // Display profile photo
                 if (currentUser.profilePhoto) {
@@ -891,6 +911,7 @@
             if (currentUser) {
                 currentUser.fullName = fullName;
                 currentUser.email = email;
+                currentUser.portfolioUrl = portfolioUrl; // Save portfolio URL to user data
             }
 
             const newSkillId = 'skill' + Date.now(); // Simple unique ID based on timestamp
@@ -909,7 +930,8 @@
                 name: fullName,
                 skill: skill,
                 price: price,
-                hour: hour
+                hour: hour,
+                portfolioUrl: portfolioUrl // Add portfolio URL to minter data
             };
 
             appData.marketplace.minted.push(newMintedSkill);
@@ -958,6 +980,17 @@
                 profileMessage.classList.add('text-red-500');
                 setTimeout(() => profileMessage.classList.add('hidden'), 2000);
             }
+        }
+
+        /**
+         * Simulates viewing a minter's portfolio.
+         * @param {string} url - The portfolio URL to open/view.
+         */
+        function viewPortfolio(url) {
+            // In a real application, you might open a new tab:
+            window.open(url, '_blank');
+            // For this simulation, we'll just log to console.
+            console.log('Viewing portfolio:', url);
         }
 
         // --- Profile Photo Upload Handler ---
@@ -1167,7 +1200,8 @@
                     name: currentUser.fullName || 'You',
                     skill: skillName,
                     price: parseFloat(price),
-                    hour: 2
+                    hour: 2,
+                    portfolioUrl: currentUser.portfolioUrl || '' // Include portfolio URL
                 };
                 appData.marketplace.minters.push(newMinterSkill);
 
